@@ -8,8 +8,10 @@ fn get_title() -> String {
 	return the_title;
 }
 
-fn parse_markdown_file() {
-	// Будет вызываться, когда нам передадут md-файл через cl
+fn parse_markdown_file(_filename: &str) {
+	// Будет вызываться, когда нам передадут md-файл через CL
+	print_short_banner();
+	println!("[ INFO ] Trying to parse {}...", _filename);
 }
 
 fn print_short_banner() {
@@ -33,5 +35,13 @@ fn usage() {
 }
 
 fn main() {
-	usage();
+	// Работа с аргументами CL
+	let args: Vec<String> = std::env::args().collect();
+	match args.len() {
+		2 => parse_markdown_file(&args[1]),
+		_ => {
+			println!("[ ERROR ] Invalid invocation (you done goofes!)");
+			usage();
+		}
+	}
 }
