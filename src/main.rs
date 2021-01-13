@@ -1,3 +1,7 @@
+use std::path::Path;
+use std::fs::File;
+use std::io::{BuRead, BuReader};
+
 fn get_title() -> String {
 	// Возвращает строку - 'короткий баннер'
 	let mut the_title = String::from(env!("CARGO_PKG_NAME"));
@@ -12,6 +16,20 @@ fn parse_markdown_file(_filename: &str) {
 	// Будет вызываться, когда нам передадут md-файл через CL
 	print_short_banner();
 	println!("[ INFO ] Trying to parse {}...", _filename);
+
+	// Создать переменную path из имени _filename
+	let input_filename = Path::new(_filename);
+
+	// Попытаюсь открыть файл
+	let file = File::open(&input_filename)
+		.expect("[ ERROR ] Failed to open file!");
+
+	let mut _ptag: bool = false;
+	let mut _htag: bool = false;
+
+	let mut tokens: Vec<String> = Vec::new();
+
+	let reader = BufReader::new(file);
 }
 
 fn print_short_banner() {
