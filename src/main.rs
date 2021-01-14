@@ -1,6 +1,7 @@
 use std::path::Path;
 use std::fs::File;
-use std::io::{BuRead, BuReader};
+use std::io::{BufRead, BufReader};
+use std::io::Write;
 
 fn get_title() -> String {
 	// Возвращает строку - 'короткий баннер'
@@ -15,7 +16,7 @@ fn get_title() -> String {
 fn parse_markdown_file(_filename: &str) {
 	// Будет вызываться, когда нам передадут md-файл через CL
 	print_short_banner();
-	println!("[ INFO ] Trying to parse {}...", _filename);
+	println!("[ INFO ] Starting parser!");
 
 	// Создать переменную path из имени _filename
 	let input_filename = Path::new(_filename);
@@ -30,6 +31,75 @@ fn parse_markdown_file(_filename: &str) {
 	let mut tokens: Vec<String> = Vec::new();
 
 	let reader = BufReader::new(file);
+
+	for line in reader.lines() {
+		let line_contents = line.unwrap();
+
+		let mut first_char: Vec<char> = line_contents
+			.chars() // преобразование в последовательность символов
+			.take(1) // выхватываем первый элемент
+			.collect(); // преобразуем в тип Vec
+
+		let mut output_line = String::new();
+
+		match first_char.pop() {
+			Some('#') => {
+				if _ptag {
+					_ptag = false;
+					output_line.push_str("</p\n>");
+				}
+
+				if _htag {
+					_htag = false;
+					output_line.push_str("</h1>\n>");
+				}
+
+				_htag = true;
+				output_line.push_str("<h1>");
+				output_line.push_str(&line_contents[2..]);
+			},
+			_ => {
+				if !_ptag {
+					_ptag = true;
+					output_line.push_str("<p>");
+				}
+
+				output_line.push_str(&line_contents);
+
+				if _htag {
+					_htag = false;
+					output_line.push_str("</h1>\n");
+				}
+			}
+		};
+
+		if _htag {
+			_htag = false;
+			output_line.push_str("</h1>\n");
+		}
+
+		if _ptag {
+			_ptag = false;
+			output_line.push_str("</p>\n");
+		}
+
+		if output_line != "<p></p>\n" {
+			tokens.push(output_line);
+		}		
+	}
+
+	let mut output_filename = String::from(&_filename[.._filename.len()-3]);
+	output_filename.push_str(".html");
+
+	let mut outfile = File::create(output_filename)
+		.expect("[ ERROR ] Could not create output file!");
+
+	for line in &tokens {
+		outfile.write_all(line.as_bytes())
+			.expect("[ ERROR ] Could not write to output file!");
+	}
+
+	println!("[ INFO ] Parsing complete!");
 }
 
 fn print_short_banner() {
